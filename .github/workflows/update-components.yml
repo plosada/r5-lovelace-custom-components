@@ -10,12 +10,17 @@ on:
       - 'components_config.json'
       - 'update_components.py'
 
+# CRÍTICO: Añadir permisos necesarios
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
   check-updates:
     runs-on: ubuntu-latest
     outputs:
       updates-available: ${{ steps.check.outputs.updates-available }}
-      updates-json: ${{ steps.check.outputs.updates-json }}
     
     steps:
     - name: Checkout repository
@@ -34,7 +39,6 @@ jobs:
     - name: Check for updates
       id: check
       run: |
-        # Ejecutar check y capturar el exit code
         if python update_components.py --check; then
           echo "updates-available=false" >> $GITHUB_OUTPUT
           echo "No hay actualizaciones disponibles"
@@ -55,6 +59,11 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
 
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -69,33 +78,17 @@ jobs:
       run: |
         python update_components.py
 
-    - name: Get updates information
-      id: updates-info
-      run: |
-        if [ -f "updates.json" ]; then
-          echo "UPDATES_JSON<<EOF" >> $GITHUB_OUTPUT
-          cat updates.json >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-        fi
-
     - name: Generate commit message
       id: commit-msg
       run: |
-        echo "COMMIT_MSG<<EOF" >> $GITHUB_OUTPUT
+        echo "commit-message<<EOF" >> $GITHUB_OUTPUT
         echo "🤖 Actualización automática de componentes" >> $GITHUB_OUTPUT
         echo "" >> $GITHUB_OUTPUT
         if [ -f "updates.json" ]; then
           echo "Componentes actualizados:" >> $GITHUB_OUTPUT
-          python -c "
-        import json
-        try:
-            with open('updates.json', 'r') as f:
-                updates = json.load(f)
-            for component, info in updates.items():
-                print(f'- {component}: {info[\"current\"]} → {info[\"latest\"]}')
-        except:
-            print('- Información de actualizaciones no disponible')
-        " >> $GITHUB_OUTPUT
+          python3 -c "import json; updates = json.load(open('updates.json')); [print(f'- {comp}: {info[\"current\"]} → {info[\"latest\"]}') for comp, info in updates.items()]" >> $GITHUB_OUTPUT 2>/dev/null || echo "- Error al procesar actualizaciones" >> $GITHUB_OUTPUT
+        else
+          echo "- No se encontró información de actualizaciones" >> $GITHUB_OUTPUT
         fi
         echo "EOF" >> $GITHUB_OUTPUT
 
@@ -107,7 +100,7 @@ jobs:
       uses: peter-evans/create-pull-request@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: ${{ steps.commit-msg.outputs.COMMIT_MSG }}
+        commit-message: ${{ steps.commit-msg.outputs.commit-message }}
         title: "🤖 Actualización automática de componentes"
         body: |
           ## 🔄 Actualización Automática de Componentes
@@ -116,7 +109,7 @@ jobs:
           
           ### Componentes Actualizados
           
-          ${{ steps.commit-msg.outputs.COMMIT_MSG }}
+          ${{ steps.commit-msg.outputs.commit-message }}
           
           ### ✅ Verificaciones Realizadas
           - [x] Descarga exitosa de archivos
@@ -125,10 +118,10 @@ jobs:
           
           ### 📋 Próximos Pasos
           
-          1. Revisa los cambios en los archivos
-          2. Verifica que no haya breaking changes en los componentes originales
-          3. Prueba los componentes en tu instancia de Home Assistant
-          4. Haz merge de este PR si todo funciona correctamente
+          1. Revisar los cambios en los archivos
+          2. Verificar que no haya breaking changes en los componentes originales
+          3. Probar los componentes en tu instancia de Home Assistant
+          4. Hacer merge de este PR si todo funciona correctamente
           
           ### 🔍 Archivos Modificados
           
@@ -143,7 +136,7 @@ jobs:
         branch: update-components-${{ github.run_number }}
         delete-branch: true
         draft: false
-          
+        base: main
 
   notify-no-updates:
     needs: check-updates
