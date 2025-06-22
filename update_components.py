@@ -265,17 +265,28 @@ def main():
             print("Actualizaciones disponibles:")
             for component, info in updates.items():
                 print(f"  {component}: {info['current']} → {info['latest']}")
+            
+            # Guardar información de actualizaciones para GitHub Actions
+            import json
+            with open('updates.json', 'w') as f:
+                json.dump(updates, f, indent=2)
         else:
             print("Todos los componentes están actualizados")
+        
+        # Exit code para GitHub Actions
+        exit(0 if not updates else 1)
     elif args.component:
-        updater.update_component(args.component)
+        success = updater.update_component(args.component)
+        exit(0 if success else 1)
     else:
         results = updater.update_all_components()
         failed = [name for name, success in results.items() if not success]
         if failed:
             print(f"❌ Falló la actualización de: {', '.join(failed)}")
+            exit(1)
         else:
             print("✅ Todos los componentes actualizados exitosamente")
+            exit(0)
 
 if __name__ == "__main__":
     main()

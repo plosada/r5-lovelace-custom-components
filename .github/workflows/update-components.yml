@@ -34,21 +34,14 @@ jobs:
     - name: Check for updates
       id: check
       run: |
-        python update_components.py --check > check_output.txt 2>&1
-        if grep -q "Actualizaciones disponibles" check_output.txt; then
-          echo "updates-available=true" >> $GITHUB_OUTPUT
-          # Extraer información de actualizaciones para el PR
-          python -c "
-        import json
-        from update_components import ComponentUpdater
-        updater = ComponentUpdater()
-        updates = updater.check_for_updates()
-        print('updates-json=' + json.dumps(updates))
-        " >> $GITHUB_OUTPUT
-        else
+        # Ejecutar check y capturar el exit code
+        if python update_components.py --check; then
           echo "updates-available=false" >> $GITHUB_OUTPUT
+          echo "No hay actualizaciones disponibles"
+        else
+          echo "updates-available=true" >> $GITHUB_OUTPUT
+          echo "Actualizaciones disponibles encontradas"
         fi
-        cat check_output.txt
 
   update-components:
     needs: check-updates
@@ -60,6 +53,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -74,26 +68,46 @@ jobs:
     - name: Update components
       run: |
         python update_components.py
-        
-    - name: Check for changes
-      id: changes
+
+    - name: Get updates information
+      id: updates-info
       run: |
-        if git diff --quiet; then
-          echo "has-changes=false" >> $GITHUB_OUTPUT
-        else
-          echo "has-changes=true" >> $GITHUB_OUTPUT
+        if [ -f "updates.json" ]; then
+          echo "UPDATES_JSON<<EOF" >> $GITHUB_OUTPUT
+          cat updates.json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
         fi
 
+    - name: Generate commit message
+      id: commit-msg
+      run: |
+        echo "COMMIT_MSG<<EOF" >> $GITHUB_OUTPUT
+        echo "🤖 Actualización automática de componentes" >> $GITHUB_OUTPUT
+        echo "" >> $GITHUB_OUTPUT
+        if [ -f "updates.json" ]; then
+          echo "Componentes actualizados:" >> $GITHUB_OUTPUT
+          python -c "
+        import json
+        try:
+            with open('updates.json', 'r') as f:
+                updates = json.load(f)
+            for component, info in updates.items():
+                print(f'- {component}: {info[\"current\"]} → {info[\"latest\"]}')
+        except:
+            print('- Información de actualizaciones no disponible')
+        " >> $GITHUB_OUTPUT
+        fi
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
     - name: Create Pull Request
-      if: steps.changes.outputs.has-changes == 'true'
       uses: peter-evans/create-pull-request@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: |
-          🤖 Actualización automática de componentes
-          
-          Componentes actualizados:
-          ${{ needs.check-updates.outputs.updates-json }}
+        commit-message: ${{ steps.commit-msg.outputs.COMMIT_MSG }}
         title: "🤖 Actualización automática de componentes"
         body: |
           ## 🔄 Actualización Automática de Componentes
@@ -102,9 +116,7 @@ jobs:
           
           ### Componentes Actualizados
           
-          ```json
-          ${{ needs.check-updates.outputs.updates-json }}
-          ```
+          ${{ steps.commit-msg.outputs.COMMIT_MSG }}
           
           ### ✅ Verificaciones Realizadas
           - [x] Descarga exitosa de archivos
@@ -116,17 +128,22 @@ jobs:
           1. Revisa los cambios en los archivos
           2. Verifica que no haya breaking changes en los componentes originales
           3. Prueba los componentes en tu instancia de Home Assistant
-          4. Merge este PR si todo funciona correctamente
+          4. Haz merge de este PR si todo funciona correctamente
+          
+          ### 🔍 Archivos Modificados
+          
+          Los siguientes tipos de archivos fueron actualizados:
+          - `*.js` - Archivos JavaScript de los componentes
+          - `version.json` - Información de versión actualizada
+          - `README.md` - Documentación de los componentes (si cambió)
           
           ---
           
-          **Nota**: Este PR se generó automáticamente el ${{ steps.date.outputs.date }}
+          **Ejecutado automáticamente el**: ${{ steps.date.outputs.date }}
         branch: update-components-${{ github.run_number }}
         delete-branch: true
-
-    - name: Get current date
-      id: date
-      run: echo "date=$(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+        draft: false
+          
 
   notify-no-updates:
     needs: check-updates
