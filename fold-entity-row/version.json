@@ -1,6 +1,14 @@
 {
-  "version": "2.3.1",
+  "version": "ec6d99e0",
   "source_url": "https://github.com/thomasloven/lovelace-fold-entity-row",
-  "last_updated": "2025-06-22T10:00:00Z",
-  "commit_hash": "abc123def456"
+  "last_updated": "2025-06-22T23:52:24.960694",
+  "commit_hash": "ec6d99e0",
+  "files": [
+    "fold-entity-row/fold-entity-row.js",
+    "fold-entity-row/README.md"
+  ],
+  "file_hashes": {
+    "fold-entity-row/fold-entity-row.js": "c4ff280fd6df776a6994af8c4e536eb73ddc50c5e8e7e5c05f3bfa4ec2c3cfec",
+    "fold-entity-row/README.md": "e4ea8d0e1b07b9620e02c4fe2542e9e631dd901315b53e7feaf165c58901e377"
+  }
 }
