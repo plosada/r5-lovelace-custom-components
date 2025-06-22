@@ -1,0 +1,32 @@
+{
+  "card-mod": {
+    "source_url": "https://github.com/thomasloven/lovelace-card-mod",
+    "description": "Add CSS styles to (almost) any lovelace card",
+    "use_releases": false,
+    "files": [
+      {
+        "source": "card-mod.js",
+        "destination": "card-mod.js"
+      },
+      {
+        "source": "README.md",
+        "destination": "README.md"
+      }
+    ]
+  },
+  "fold-entity-row": {
+    "source_url": "https://github.com/thomasloven/lovelace-fold-entity-row",
+    "description": "A foldable row for entities card, containing other rows",
+    "use_releases": false,
+    "files": [
+      {
+        "source": "fold-entity-row.js",
+        "destination": "fold-entity-row.js"
+      },
+      {
+        "source": "README.md",
+        "destination": "README.md"
+      }
+    ]
+  }
+}
