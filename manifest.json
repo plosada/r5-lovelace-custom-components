@@ -1,0 +1,22 @@
+{
+  "name": "R5 Lovelace Custom Components",
+  "version": "1.0.0",
+  "description": "Collection of useful Lovelace custom components",
+  "author": "plosada",
+  "components": [
+    {
+      "file": "card-mod.js",
+      "name": "Card Mod",
+      "description": "Advanced CSS styling for Lovelace cards",
+      "type": "module",
+      "required": true
+    },
+    {
+      "file": "fold-entity-row.js", 
+      "name": "Fold Entity Row",
+      "description": "Collapsible rows for entities in Lovelace",
+      "type": "module",
+      "required": true
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "R5 Lovelace Custom Components",
+  "content_in_root": false,
+  "filename": "r5-lovelace-custom-components.js",
+  "country": ["AR"],
+  "homeassistant": "2023.1.0",
+  "persistent_directory": false,
+  "render_readme": true,
+  "zip_release": false,
+  "hide_default_branch": false
+}
