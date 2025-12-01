@@ -1,14 +1,14 @@
 {
-  "version": "5d0151b6",
+  "version": "af5108d2",
   "source_url": "https://github.com/thomasloven/lovelace-card-mod",
-  "last_updated": "2025-06-22T23:52:24.590579",
-  "commit_hash": "5d0151b6",
+  "last_updated": "2025-12-01T09:19:48.106002",
+  "commit_hash": "af5108d2",
   "files": [
     "card-mod/card-mod.js",
     "card-mod/README.md"
   ],
   "file_hashes": {
-    "card-mod/card-mod.js": "174d3352e20922654dc2fbad355ae09584ff2778d2a1d5e82b41e071c99d1dc0",
-    "card-mod/README.md": "215a954a2e01c31de27a1fd429a0294334b2d71bbe9fd71f579963e6d14aa92c"
+    "card-mod/card-mod.js": "d8cf3bd9ffdc18f15603457e55ca1433a0cb4e4cc296beadfe947283c7976b62",
+    "card-mod/README.md": "b4c291b0f8c0e631457e0e69555f76fb15fe3e07ac0c31eb7893bb4c0e534643"
   }
 }
